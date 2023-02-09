@@ -1,52 +1,76 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const axios = require('axios');
+require('dotenv').config();
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('embed')
-    .setDescription('Returns an embed'),
+    .setName('news')
+    .setDescription('Returns latest database news article'),
   async execute(interaction, client) {
-    const embed = new EmbedBuilder()
-      .setTitle(`This is an embed!`)
-      .setDescription(`This is a very cool description`)
-      .setColor(0x18e1ee)
-      .setImage(client.user.displayAvatarURL())
-      .setThumbnail(client.user.displayAvatarURL())
-      .setTimestamp(Date.now())
-      .setAuthor({
-        url: `https://google.com`,
-        iconURL: interaction.user.displayAvatarURL(),
-        name: interaction.user.tag,
-      })
-      .setFooter({
-        iconURL: client.user.displayAvatarURL(),
-        text: client.user.tag,
-      })
-      .setURL('https://google.com')
-      .addFields([
-        {
-          name: 'name 1',
-          value: 'value 1',
-          inline: true,
-        },
-        {
-          name: 'name 2',
-          value: 'value 2',
-          inline: true,
-        },
-        {
-          name: 'name 3',
-          value: 'value 3',
-          inline: false,
-        },
-        {
-          name: 'name 4',
-          value: 'value 4',
-          inline: false,
-        },
-      ]);
+    let responseData = '';
+    let embed = '';
 
-    await interaction.reply({
-      embeds: [embed],
-    });
+    await axios
+      .get(
+        `https://api.daba.so/${process.env.PROJECT_ID}/${process.env.DB_KEY}/key/news`
+      )
+      .then(function (response) {
+        if (
+          interaction.createdTimestamp - response.data.data.lastFetch >
+          900000
+        ) {
+          axios
+            .get(
+              `https://gnews.io/api/v4/search?q=database&apikey=${process.env.GNEWS_KEY}&max=1&sortby=publishedAt`
+            )
+            .then(function (response) {
+              // handle success
+              const nowDate = Date.now();
+              const dataToUpload = {
+                article: response.data.articles[0],
+                lastFetch: nowDate,
+              };
+              const url = `https://api.daba.so/${process.env.PROJECT_ID}/${process.env.DB_KEY}/key/news`;
+              axios
+                .post(url, { data: dataToUpload })
+                .then(function (response) {
+                  responseData = dataToUpload.article;
+                  embed = new EmbedBuilder()
+                    .setTitle(`${responseData.title}`)
+                    .setDescription(`${responseData.description}`)
+                    .setColor(0x5e17eb)
+                    .setImage(`${responseData.image}`)
+                    .setThumbnail(client.user.displayAvatarURL())
+                    .setURL(`${responseData.url}`);
+
+                  interaction.reply({
+                    embeds: [embed],
+                  });
+                })
+                .catch(function (error) {
+                  console.log(error);
+                });
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        } else {
+          responseData = response.data.data;
+          embed = new EmbedBuilder()
+            .setTitle(`${responseData.article.title}`)
+            .setDescription(`${responseData.article.description}`)
+            .setColor(0x5e17eb)
+            .setImage(`${responseData.article.image}`)
+            .setThumbnail(client.user.displayAvatarURL())
+            .setURL(`${responseData.article.url}`);
+
+          interaction.reply({
+            embeds: [embed],
+          });
+        }
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
   },
 };
