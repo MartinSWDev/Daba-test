@@ -36,7 +36,6 @@ module.exports = {
                 .post(url, { data: dataToUpload })
                 .then(function (response) {
                   responseData = dataToUpload.articles;
-                  console.log(responseData);
                   const pagination = new Pagination(interaction);
 
                   const embeds = [];

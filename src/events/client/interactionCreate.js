@@ -19,7 +19,5 @@ module.exports = {
         });
       }
     }
-
-    console.log(`Ready! ${client.user.tag} is logged in and online :)`);
   },
 };

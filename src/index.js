@@ -3,11 +3,18 @@ require('dotenv').config();
 const { discord_bot_token } = process.env;
 
 //discord
-const { Client, Collection } = require('discord.js');
+const { Client, Collection, GatewayIntentBits } = require('discord.js');
 // fs
 const fs = require('fs');
 
-const client = new Client({ intents: 32767 });
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMessageReactions,
+  ],
+});
 client.commands = new Collection();
 client.commandArray = [];
 
