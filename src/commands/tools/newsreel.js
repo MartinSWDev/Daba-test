@@ -63,7 +63,7 @@ module.exports = {
               console.log(error);
             });
         } else {
-          responseData = response.data.data;
+          responseData = response.data.data.articles;
 
           const pagination = new Pagination(interaction);
 

@@ -1,6 +1,6 @@
 // dotenv
 require('dotenv').config();
-const { discord_bot_token, databaseToken, guildId, clientId } = process.env;
+const { discord_bot_token } = process.env;
 
 //discord
 const { Client, Collection } = require('discord.js');
