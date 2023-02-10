@@ -27,7 +27,7 @@ module.exports = {
               // handle success
               const nowDate = Date.now();
               const dataToUpload = {
-                article: response.data.articles[0],
+                articles: response.data.articles,
                 lastFetch: nowDate,
               };
               const url = `https://api.daba.so/${process.env.PROJECT_ID}/${process.env.DB_KEY}/key/news`;
