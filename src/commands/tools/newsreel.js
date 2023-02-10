@@ -1,11 +1,12 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const axios = require('axios');
 require('dotenv').config();
+const { Pagination } = require('pagination.djs');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('news')
-    .setDescription('Returns latest database news article'),
+    .setName('newsreel')
+    .setDescription('Returns latest 10 database news articles'),
   async execute(interaction, client) {
     let responseData = '';
     let embed = '';
@@ -27,7 +28,7 @@ module.exports = {
               // handle success
               const nowDate = Date.now();
               const dataToUpload = {
-                article: response.data.articles[0],
+                articles: response.data.articles,
                 lastFetch: nowDate,
               };
               const url = `https://api.daba.so/${process.env.PROJECT_ID}/${process.env.DB_KEY}/key/news`;
@@ -35,17 +36,24 @@ module.exports = {
                 .post(url, { data: dataToUpload })
                 .then(function (response) {
                   responseData = dataToUpload.articles;
-                  embed = new EmbedBuilder()
-                    .setTitle(`${responseData[0].title}`)
-                    .setDescription(`${responseData[0].description}`)
-                    .setColor(0x5e17eb)
-                    .setImage(`${responseData[0].image}`)
-                    .setThumbnail(client.user.displayAvatarURL())
-                    .setURL(`${responseData[0].url}`);
+                  console.log(responseData);
+                  const pagination = new Pagination(interaction);
 
-                  interaction.reply({
-                    embeds: [embed],
-                  });
+                  const embeds = [];
+
+                  for (let i = 0; i < 10; i++) {
+                    const newEmbed = new EmbedBuilder()
+                      .setTitle(`${responseData[i].title}`)
+                      .setDescription(`${responseData[i].description}`)
+                      .setColor(0x5e17eb)
+                      .setImage(`${responseData[i].image}`)
+                      .setThumbnail(client.user.displayAvatarURL())
+                      .setURL(`${responseData[i].url}`);
+                    embeds.push(newEmbed);
+                  }
+                  pagination.setEmbeds(embeds);
+
+                  pagination.render();
                 })
                 .catch(function (error) {
                   console.log(error);
@@ -56,17 +64,25 @@ module.exports = {
             });
         } else {
           responseData = response.data.data;
-          embed = new EmbedBuilder()
-            .setTitle(`${responseData.articles[0].title}`)
-            .setDescription(`${responseData.articles[0].description}`)
-            .setColor(0x5e17eb)
-            .setImage(`${responseData.articles[0].image}`)
-            .setThumbnail(client.user.displayAvatarURL())
-            .setURL(`${responseData.articles[0].url}`);
 
-          interaction.reply({
-            embeds: [embed],
-          });
+          const pagination = new Pagination(interaction);
+
+          const embeds = [];
+
+          for (let i = 0; i < 10; i++) {
+            const newEmbed = new EmbedBuilder()
+              .setTitle(`${responseData[i].title}`)
+              .setDescription(`${responseData[i].description}`)
+              .setColor(0x5e17eb)
+              .setImage(`${responseData[i].image}`)
+              .setThumbnail(client.user.displayAvatarURL())
+              .setURL(`${responseData[i].url}`);
+            embeds.push(newEmbed);
+          }
+
+          pagination.setEmbeds(embeds);
+
+          pagination.render();
         }
       })
       .catch(function (error) {
